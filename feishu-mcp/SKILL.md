@@ -1,8 +1,8 @@
 ---
-version: 1.0.0
+version: 1.2.0
 description: 使用 feishu-mcp-tool CLI 操作飞书文档、任务、用户等资源。当用户需要读写飞书（创建/查询/更新/删除文档、块、任务、文件夹、用户）时调用此 skill。
 argument-hint: "[tool-name] [json-params]"
-allowed-tools: Bash(feishu-mcp-tool *), Bash(command -v feishu-mcp-tool), Bash(npm install -g feishu-mcp), Bash(node --version)
+allowed-tools: Bash(feishu-mcp-tool *), Bash(command -v feishu-mcp-tool), Bash(npx feishu-mcp *), Bash(npm install -g feishu-mcp)
 parameters:
   - name: tool_name
     type: string
@@ -19,21 +19,96 @@ parameters:
 
 命令行工具，支持直接调用全部飞书 MCP 工具。专为 LLM Agent 设计：参数以 JSON 传入，结果以纯 JSON 输出到 stdout，日志和授权提示输出到 stderr。
 
-## 前置条件
+## 执行流程
 
-此 skill 依赖 [Feishu-MCP](https://github.com/cso1z/Feishu-MCP) 项目提供的 `feishu-mcp-tool` 命令。
+每次调用前，按以下顺序检查，任一步骤不满足则停止并提示用户：
 
-### 第一步：安装
+### 第一步：检查命令是否可用
 
 ```bash
-npm install -g feishu-mcp
+command -v feishu-mcp-tool
 ```
 
-> 要求 Node.js >= 20.17.0。安装后 `feishu-mcp-tool` 命令即注册到全局 PATH。
+- **有输出（路径）**：继续下一步
+- **无输出 / 报错**：询问用户偏好，**停止执行**：
 
-### 第二步：配置环境变量
+```
+feishu-mcp-tool 命令未找到，请选择安装方式：
 
-在项目根目录创建 `.env` 文件（参考仓库中的 `.env.example`），或在系统环境变量中设置：
+方式 A — npx（无需安装，即用即走，推荐快速体验）：
+  无需额外步骤，直接告知我，我将使用 npx feishu-mcp 执行
+  注意：npx 版本可能落后最新代码约 1-2 周
+
+方式 B — 全局安装（推荐长期使用）：
+  npm install -g feishu-mcp
+  feishu-mcp-tool guide
+
+方式 C — 本地源码（开发者，功能最新）：
+  git clone https://github.com/cso1z/Feishu-MCP
+  cd Feishu-MCP && pnpm install && pnpm build && pnpm link --global
+
+项目地址：https://github.com/cso1z/Feishu-MCP
+```
+
+**若用户选择 npx**：后续所有命令将 `feishu-mcp-tool <args>` 替换为 `npx feishu-mcp <args>`，无需再次检查。
+
+### 第二步：检查是否已完成初始化配置
+
+```bash
+feishu-mcp-tool config
+```
+
+- 若 `FEISHU_APP_ID` 或 `FEISHU_APP_SECRET` 为 `(未设置)`：调用 `feishu-mcp-tool guide` 并提示用户按指南完成初始化，**停止执行**
+- 配置就绪：继续下一步
+
+### 第三步（仅 user 模式）：检查授权状态
+
+若 `FEISHU_AUTH_TYPE` 为 `user`，执行：
+
+```bash
+feishu-mcp-tool auth
+```
+
+- `isValid: true`：token 有效，正常执行
+- `isValid: false` 且 `canRefresh: false`：token 不存在或已过期，**告知用户**：
+
+```
+需要飞书用户授权。即将调用工具，程序会自动打开浏览器授权页，
+请在 5 分钟内完成授权后结果将自动返回。
+```
+
+  然后继续执行目标工具（工具内部会自动触发授权等待）。
+
+---
+
+## 配置管理
+
+### 初次配置（推荐方式）
+
+```bash
+# 查看配置指南（同时打开详细文档页面）
+feishu-mcp-tool guide
+
+# 逐项写入配置（保存到 ~/.cache/feishu-mcp/.env，全局生效）
+feishu-mcp-tool config set FEISHU_APP_ID <your-app-id>
+feishu-mcp-tool config set FEISHU_APP_SECRET <your-app-secret>
+feishu-mcp-tool config set FEISHU_AUTH_TYPE tenant   # 或 user
+feishu-mcp-tool config set FEISHU_ENABLED_MODULES document  # 或 all
+```
+
+> 配置写入 `~/.cache/feishu-mcp/.env`，对所有项目全局生效，无需在每个项目单独创建 `.env`。
+
+### 查看当前配置
+
+```bash
+feishu-mcp-tool config
+```
+
+### 可配置项（不确定时可先执行 `feishu-mcp-tool config set` 查看说明）
+
+```bash
+feishu-mcp-tool config set   # 不带参数：显示所有可用 KEY 及含义
+```
 
 | 变量 | 必填 | 说明 | 示例 |
 |------|------|------|------|
@@ -42,26 +117,7 @@ npm install -g feishu-mcp
 | `FEISHU_AUTH_TYPE` | 否 | 认证模式：`tenant`（默认）或 `user`（需 OAuth）| `tenant` |
 | `FEISHU_ENABLED_MODULES` | 否 | 启用模块：`document`/`task`/`member`/`all`，默认 `document` | `all` |
 
-## 执行规则
-
-**调用任何工具前，必须先检查命令是否可用：**
-
-```bash
-command -v feishu-mcp-tool
-```
-
-- **有输出（路径）**：命令就绪，正常执行
-- **无输出 / 报错**：停止执行，向用户输出以下提示后不再继续：
-
-```
-feishu-mcp-tool 命令未找到，请先完成以下安装步骤：
-
-1. 确认 Node.js >= 20.17.0：node --version
-2. 全局安装：npm install -g feishu-mcp
-3. 配置环境变量 FEISHU_APP_ID 和 FEISHU_APP_SECRET（参考 .env.example）
-
-项目地址：https://github.com/cso1z/Feishu-MCP
-```
+---
 
 ## 调用格式
 
@@ -74,22 +130,41 @@ feishu-mcp-tool <tool-name>          # 无参数工具可省略第二个参数
 - **stderr**：日志与认证提示（不影响结果解析）
 - **exit 0**：成功；**exit 1**：失败，stdout 输出 `{"error":"..."}`
 
+### 动态获取当前可用工具列表
+
+```bash
+feishu-mcp-tool --help
+```
+
+返回当前 `authType` 下实际可用的工具列表及子命令说明。`tenant` 模式下 task/member 工具不可用，`toolsNote` 字段会说明原因。
+
+---
+
 ## 使用场景
 
 - **文档管理**：在飞书云盘或知识库中创建、读取、编辑文档内容（文本、标题、代码块、图片、表格、白板）
-- **任务跟踪**：创建带子任务的任务、分配负责人、更新进度、批量删除
-- **用户查询**：按姓名搜索用户或按 open_id 批量获取用户信息
+- **任务跟踪**：创建带子任务的任务、分配负责人、更新进度、批量删除（需 `FEISHU_AUTH_TYPE=user`）
+- **用户查询**：按姓名搜索用户或按 open_id 批量获取用户信息（需 `FEISHU_AUTH_TYPE=user`）
+
+---
 
 ## 工具速查
 
-### Document 模块（15个）
+> **调用任何工具前，必须先读取对应模块的参考文档**，确认参数签名后再执行：
+> - Document 模块 → `feishu-mcp/reference/document.md`
+> - Task 模块 → `feishu-mcp/reference/task.md`
+> - Member 模块 → `feishu-mcp/reference/member.md`
+>
+> 下表仅供选择工具用，不含完整参数。实际可用工具以 `feishu-mcp-tool --help` 为准（受 `authType` 影响）。
+
+### Document 模块（tenant + user 均可用，共 15 个）
 
 | 工具名 | 用途 |
 |--------|------|
 | `get_feishu_root_folder_info` | 获取根文件夹、知识空间列表和我的知识库 |
 | `get_feishu_folder_files` | 列出文件夹或知识库节点下的文件 |
-| `create_feishu_folder` | 在指定文件夹下创建子文件夹 |
-| `create_feishu_document` | 在文件夹或知识库中创建文档 |
+| `create_feishu_folder` | 在云盘文件夹下创建子文件夹 |
+| `create_feishu_document` | 在云盘或知识库中创建文档 |
 | `get_feishu_document_info` | 获取文档元数据（标题、token、类型等）|
 | `get_feishu_document_blocks` | 获取文档的完整块结构和内容 |
 | `batch_create_feishu_blocks` | 在文档中批量创建块（文本/标题/代码/图片/表格等）|
@@ -102,20 +177,22 @@ feishu-mcp-tool <tool-name>          # 无参数工具可省略第二个参数
 | `get_feishu_whiteboard_content` | 获取白板节点结构和内容 |
 | `fill_whiteboard_with_plantuml` | 用 PlantUML/Mermaid 图表填充白板 |
 
-### Task 模块（4个）
+### Task 模块（仅 `FEISHU_AUTH_TYPE=user`，共 4 个）
 
 | 工具名 | 用途 |
 |--------|------|
 | `list_feishu_tasks` | 列出当前用户负责的任务（支持分页）|
 | `create_feishu_task` | 批量创建任务（支持嵌套子任务）|
-| `update_feishu_task` | 更新任务字段（标题/描述/截止时间/完成状态）|
+| `update_feishu_task` | 更新任务字段（标题/描述/截止时间/完成状态/成员）|
 | `delete_feishu_task` | 批量删除任务 |
 
-### Member 模块（1个）
+### Member 模块（仅 `FEISHU_AUTH_TYPE=user`，共 1 个）
 
 | 工具名 | 用途 |
 |--------|------|
 | `get_feishu_users` | 按名称搜索或按 ID 批量获取用户信息 |
+
+---
 
 ## 快速示例
 
@@ -126,9 +203,14 @@ feishu-mcp-tool get_feishu_root_folder_info
 # 在根文件夹下创建文档
 feishu-mcp-tool create_feishu_document '{"title":"我的文档","folderToken":"FWK2xxxxx"}'
 
-# 创建任务
+# 创建任务（需 user 模式）
 feishu-mcp-tool create_feishu_task '{"tasks":[{"summary":"完成需求评审","dueTimestamp":"1742212800000"}]}'
+
+# 按姓名搜索用户（需 user 模式）
+feishu-mcp-tool get_feishu_users '{"queries":[{"query":"张三"}]}'
 ```
+
+---
 
 ## 错误格式
 
@@ -138,10 +220,13 @@ feishu-mcp-tool create_feishu_task '{"tasks":[{"summary":"完成需求评审","d
 
 常见错误：`未知工具: "xxx"` / `参数解析失败` / `参数校验失败` / 飞书 API 错误（含 code、log_id）
 
-## 详细参考文档
+---
 
-需要了解工具完整参数和工作流时，读取对应模块文档：
+## 参考文档
 
-- **Document 模块**（文件夹/文档/块/图片/白板）→ `feishu-mcp-tool/reference/document.md`
-- **Task 模块**（任务 CRUD）→ `feishu-mcp-tool/reference/task.md`
-- **Member 模块**（用户查询）→ `feishu-mcp-tool/reference/member.md`
+工具完整参数签名、字段类型、限制和工作流示例均在对应模块文档中：
+
+- **Document 模块**（文件夹/文档/块/图片/白板）→ `feishu-mcp/reference/document.md`
+- **Task 模块**（任务 CRUD）→ `feishu-mcp/reference/task.md`
+- **Member 模块**（用户查询）→ `feishu-mcp/reference/member.md`
+- **CLI 管理命令**（config/auth/guide）→ `feishu-mcp/reference/cli.md`
