@@ -94,7 +94,7 @@ feishu-tool get_feishu_root_folder_info
 {
   "root_folder": {"token": "FWK2xxxxx", "id": "0"},
   "wiki_spaces": [{"id": "7614920810658024396", "name": "团队知识库"}],
-  "my_wiki": {"spaceId": "xxx", "nodeToken": "xxx"}
+  "my_library": {"space_id": "xxx", "name": "My Document Library", "space_type": "my_library"}
 }
 ```
 
@@ -175,7 +175,7 @@ feishu-tool get_feishu_document_info '{"documentId":"https://xxx.feishu.cn/wiki/
 
 ### `get_feishu_document_blocks`
 
-获取文档的完整块结构（文本、标题、代码、图片、表格等）。
+获取文档的完整块结构（文本、标题、代码、图片、表格等）。文档中若含图片块（block_type=27）或白板块（block_type=43），stdout 末尾会附加一段非 JSON 的提示文本。
 
 **参数：**
 
@@ -368,7 +368,7 @@ feishu-tool create_feishu_table '{
 
 ### `get_feishu_image_resource`
 
-下载图片资源，返回 base64 编码数据。
+下载图片资源，返回包含 base64 字段的 JSON 对象：`{"base64":"..."}`。
 
 **参数：**
 
@@ -584,16 +584,8 @@ feishu-tool create_feishu_table '{
   "tableConfig": {"rowSize": 2, "columnSize": 2}
 }'
 
-# 2. 获取文档块结构，找到目标单元格容器块的 children[0]（子块 ID）
-# 先写入临时文件，避免变量插值破坏 JSON 中的双引号
-# macOS/Linux/Git Bash：/tmp/blocks.json；Windows 原生 shell：$TEMP/blocks.json
-feishu-tool get_feishu_document_blocks '{"documentId":"<doc_id>"}' > /tmp/blocks.json
-node -e "
-  const raw = require('fs').readFileSync('/tmp/blocks.json', 'utf8');
-  const blocks = JSON.parse(raw.slice(0, raw.lastIndexOf(']') + 1));
-  const cell = blocks.find(b => b.block_id === '<cellBlockId>');
-  console.log('子块 ID:', cell.children[0]);
-"
+# 2. 获取文档块结构，从结果中找到目标单元格容器块的 children[0]（子块 ID）
+feishu-tool get_feishu_document_blocks '{"documentId":"<doc_id>"}'
 
 # 3. 用子块 ID 更新文本（传 cellBlockId 会报错 1770025）
 feishu-tool batch_update_feishu_block_text '{

@@ -20,10 +20,6 @@ parameters:
 
 命令行工具，支持直接调用全部飞书 MCP 工具。专为 LLM Agent 设计：参数以 JSON 传入，日志和授权提示输出到 stderr。
 
-> ⚠️ **stdout 说明**：
-> - `get_feishu_document_blocks`：检测到图片块（block_type=27）或白板块时，会在 JSON 数组末尾追加非 JSON 提示文本。**不要直接 pipe 给 JSON 解析器**，应先保存到文件，再用 `raw.slice(0, raw.lastIndexOf(']') + 1)` 截取纯 JSON 部分。
-> - `batch_create_feishu_blocks`：创建图片块或白板块时，返回结果中会额外包含 `imageBlocksInfo` / `whiteboardBlocksInfo` 字段（合法 JSON，无需特殊处理，直接读取所需字段即可）。
-
 ## 执行流程
 
 每次调用前，按以下顺序检查，任一步骤不满足则停止并提示用户：
@@ -43,7 +39,7 @@ npm install -g feishu-mcp@latest
 
 ### 第二步：检查版本是否满足要求
 
-检查本地全局安装的 `feishu-mcp` 包版本，要求 **≥ 0.3.0**。
+检查本地全局安装的 `feishu-mcp` 包版本，要求 **≥ 0.3.1**。
 
 - **满足要求**：继续第三步
 - **不满足或未安装**：执行 `npm install -g feishu-mcp@latest` 升级，完成后**重新从第一步开始**验证
@@ -135,7 +131,7 @@ feishu-tool <tool-name> '<json-params>'
 feishu-tool <tool-name>          # 无参数工具可省略第二个参数
 ```
 
-- **stdout**：工具执行结果（JSON）
+- **stdout**：工具执行结果
 - **stderr**：日志与认证提示（不影响结果解析）
 - **exit 0**：成功；**exit 1**：失败，stdout 输出 `{"error":"..."}`
 
@@ -175,7 +171,7 @@ feishu-tool --help
 | `batch_update_feishu_block_text` | tenant / user | 批量更新块的文本内容和样式 |
 | `delete_feishu_document_blocks` | tenant / user | 删除文档中指定范围的块 |
 | `create_feishu_table` | tenant / user | 在文档中创建表格 |
-| `get_feishu_image_resource` | tenant / user | 下载图片资源，返回 base64 数据 |
+| `get_feishu_image_resource` | tenant / user | 下载图片资源，返回 `{"base64":"..."}` |
 | `upload_and_bind_image_to_block` | tenant / user | 上传本地或 URL 图片并绑定到图片块 |
 | `search_feishu_documents` | tenant / user | 搜索飞书文档和/或知识库 |
 | `get_feishu_whiteboard_content` | tenant / user | 获取白板节点结构和内容 |
