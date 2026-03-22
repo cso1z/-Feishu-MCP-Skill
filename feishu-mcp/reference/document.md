@@ -1,4 +1,4 @@
-# feishu-mcp-tool — Document 模块参考
+# feishu-tool — Document 模块参考
 
 覆盖文件夹、文档、块、图片、白板相关全部 15 个工具。
 
@@ -70,7 +70,7 @@
 获取根文件夹 token、知识空间列表和我的知识库信息。无需参数。
 
 ```bash
-feishu-mcp-tool get_feishu_root_folder_info
+feishu-tool get_feishu_root_folder_info
 ```
 
 返回示例：
@@ -96,9 +96,9 @@ feishu-mcp-tool get_feishu_root_folder_info
 > `folderToken` 与 `wikiContext` 二选一，不可同时传。
 
 ```bash
-feishu-mcp-tool get_feishu_folder_files '{"folderToken":"FWK2xxxxx"}'
-feishu-mcp-tool get_feishu_folder_files '{"wikiContext":{"spaceId":"7614920810658024396"}}'
-feishu-mcp-tool get_feishu_folder_files '{"wikiContext":{"spaceId":"7614920810658024396","parentNodeToken":"WikxxxYYY"}}'
+feishu-tool get_feishu_folder_files '{"folderToken":"FWK2xxxxx"}'
+feishu-tool get_feishu_folder_files '{"wikiContext":{"spaceId":"7614920810658024396"}}'
+feishu-tool get_feishu_folder_files '{"wikiContext":{"spaceId":"7614920810658024396","parentNodeToken":"WikxxxYYY"}}'
 ```
 
 ---
@@ -115,7 +115,7 @@ feishu-mcp-tool get_feishu_folder_files '{"wikiContext":{"spaceId":"761492081065
 - `folderName`* string：新文件夹名称
 
 ```bash
-feishu-mcp-tool create_feishu_folder '{"folderToken":"FWK2xxxxx","folderName":"2024项目"}'
+feishu-tool create_feishu_folder '{"folderToken":"FWK2xxxxx","folderName":"2024项目"}'
 ```
 
 ---
@@ -135,8 +135,8 @@ feishu-mcp-tool create_feishu_folder '{"folderToken":"FWK2xxxxx","folderName":"2
 > `folderToken` 与 `wikiContext` 二选一，不可同时传。
 
 ```bash
-feishu-mcp-tool create_feishu_document '{"title":"需求文档","folderToken":"FWK2xxxxx"}'
-feishu-mcp-tool create_feishu_document '{"title":"需求文档","wikiContext":{"spaceId":"7614920810658024396","parentNodeToken":"WikxxxYYY"}}'
+feishu-tool create_feishu_document '{"title":"需求文档","folderToken":"FWK2xxxxx"}'
+feishu-tool create_feishu_document '{"title":"需求文档","wikiContext":{"spaceId":"7614920810658024396","parentNodeToken":"WikxxxYYY"}}'
 ```
 
 ---
@@ -151,8 +151,8 @@ feishu-mcp-tool create_feishu_document '{"title":"需求文档","wikiContext":{"
 - `documentType`? string：`document`（普通文档）\| `wiki`（知识库文档）
 
 ```bash
-feishu-mcp-tool get_feishu_document_info '{"documentId":"Uk6mdN6Hao5umbxC13ccGstonIh"}'
-feishu-mcp-tool get_feishu_document_info '{"documentId":"https://xxx.feishu.cn/wiki/xxxxx","documentType":"wiki"}'
+feishu-tool get_feishu_document_info '{"documentId":"Uk6mdN6Hao5umbxC13ccGstonIh"}'
+feishu-tool get_feishu_document_info '{"documentId":"https://xxx.feishu.cn/wiki/xxxxx","documentType":"wiki"}'
 ```
 
 ---
@@ -166,7 +166,7 @@ feishu-mcp-tool get_feishu_document_info '{"documentId":"https://xxx.feishu.cn/w
 - `documentId`* → 见共用说明
 
 ```bash
-feishu-mcp-tool get_feishu_document_blocks '{"documentId":"Uk6mdN6Hao5umbxC13ccGstonIh"}'
+feishu-tool get_feishu_document_blocks '{"documentId":"Uk6mdN6Hao5umbxC13ccGstonIh"}'
 ```
 
 ---
@@ -183,8 +183,8 @@ feishu-mcp-tool get_feishu_document_blocks '{"documentId":"Uk6mdN6Hao5umbxC13ccG
 - `pageToken`? string：知识库分页 token，首次不传，翻页时传上次返回值
 
 ```bash
-feishu-mcp-tool search_feishu_documents '{"searchKey":"需求评审"}'
-feishu-mcp-tool search_feishu_documents '{"searchKey":"项目方案","searchType":"wiki"}'
+feishu-tool search_feishu_documents '{"searchKey":"需求评审"}'
+feishu-tool search_feishu_documents '{"searchKey":"项目方案","searchType":"wiki"}'
 ```
 
 ---
@@ -204,7 +204,7 @@ feishu-mcp-tool search_feishu_documents '{"searchKey":"项目方案","searchType
 
 ```bash
 # 向文档根级写入块（parentBlockId = documentId，两者值相同）
-feishu-mcp-tool batch_create_feishu_blocks '{
+feishu-tool batch_create_feishu_blocks '{
   "documentId": "Uk6mdN6Hao5umbxC13ccGstonIh",
   "parentBlockId": "Uk6mdN6Hao5umbxC13ccGstonIh",
   "index": 0,
@@ -234,7 +234,7 @@ feishu-mcp-tool batch_create_feishu_blocks '{
   - `textElements`* TextElement[]（非 textStyles）
 
 ```bash
-feishu-mcp-tool batch_update_feishu_block_text '{
+feishu-tool batch_update_feishu_block_text '{
   "documentId": "Uk6mdN6Hao5umbxC13ccGstonIh",
   "updates": [
     {
@@ -262,7 +262,7 @@ feishu-mcp-tool batch_update_feishu_block_text '{
 - `endIndex`* integer：结束索引（不含），必须 > startIndex。删除位置 2、3、4 → startIndex=2, endIndex=5；仅删除位置 2 → startIndex=2, endIndex=3
 
 ```bash
-feishu-mcp-tool delete_feishu_document_blocks '{
+feishu-tool delete_feishu_document_blocks '{
   "documentId": "Uk6mdN6Hao5umbxC13ccGstonIh",
   "parentBlockId": "Uk6mdN6Hao5umbxC13ccGstonIh",
   "startIndex": 0,
@@ -293,7 +293,7 @@ feishu-mcp-tool delete_feishu_document_blocks '{
     - `content`* BlockConfig：单元格内容块，同一坐标多项则顺序追加
 
 ```bash
-feishu-mcp-tool create_feishu_table '{
+feishu-tool create_feishu_table '{
   "documentId": "Uk6mdN6Hao5umbxC13ccGstonIh",
   "parentBlockId": "Uk6mdN6Hao5umbxC13ccGstonIh",
   "index": 0,
@@ -320,7 +320,7 @@ feishu-mcp-tool create_feishu_table '{
 - `extra`? string：加密图片的额外参数，普通图片块可省略
 
 ```bash
-feishu-mcp-tool get_feishu_image_resource '{"mediaId":"IN3QbYHQWoijZgxjkOzcpQcPnOB"}'
+feishu-tool get_feishu_image_resource '{"mediaId":"IN3QbYHQWoijZgxjkOzcpQcPnOB"}'
 ```
 
 ---
@@ -338,7 +338,7 @@ feishu-mcp-tool get_feishu_image_resource '{"mediaId":"IN3QbYHQWoijZgxjkOzcpQcPn
   - `fileName`? string：文件名含扩展名（如 `image.png`），不传则自动生成
 
 ```bash
-feishu-mcp-tool upload_and_bind_image_to_block '{
+feishu-tool upload_and_bind_image_to_block '{
   "documentId": "Uk6mdN6Hao5umbxC13ccGstonIh",
   "images": [
     {"blockId":"doxcnkLUSCAZrcWDz5Cj6oKSbQh","imagePathOrUrl":"https://example.com/chart.png"},
@@ -358,7 +358,7 @@ feishu-mcp-tool upload_and_bind_image_to_block '{
 - `whiteboardId`* string：白板 token，从文档块（block_type=43）的 `board.token` 获取
 
 ```bash
-feishu-mcp-tool get_feishu_whiteboard_content '{"whiteboardId":"EPJKwvY5ghe3pVbKj9RcT2msnBX"}'
+feishu-tool get_feishu_whiteboard_content '{"whiteboardId":"EPJKwvY5ghe3pVbKj9RcT2msnBX"}'
 ```
 
 ---
@@ -375,7 +375,7 @@ feishu-mcp-tool get_feishu_whiteboard_content '{"whiteboardId":"EPJKwvY5ghe3pVbK
   - `syntax_type`* string：`plantuml` \| `mermaid`
 
 ```bash
-feishu-mcp-tool fill_whiteboard_with_plantuml '{
+feishu-tool fill_whiteboard_with_plantuml '{
   "whiteboards": [
     {
       "whiteboardId": "EPJKwvY5ghe3pVbKj9RcT2msnBX",
@@ -394,13 +394,13 @@ feishu-mcp-tool fill_whiteboard_with_plantuml '{
 
 ```bash
 # 1. 获取根文件夹 token
-feishu-mcp-tool get_feishu_root_folder_info
+feishu-tool get_feishu_root_folder_info
 
 # 2. 创建文档
-feishu-mcp-tool create_feishu_document '{"title":"项目方案","folderToken":"<root_token>"}'
+feishu-tool create_feishu_document '{"title":"项目方案","folderToken":"<root_token>"}'
 
 # 3. 批量插入内容块
-feishu-mcp-tool batch_create_feishu_blocks '{
+feishu-tool batch_create_feishu_blocks '{
   "documentId": "<doc_id>",
   "parentBlockId": "<doc_id>",
   "index": 0,
@@ -418,13 +418,13 @@ feishu-mcp-tool batch_create_feishu_blocks '{
 
 ```bash
 # 1. 搜索目标文档
-feishu-mcp-tool search_feishu_documents '{"searchKey":"项目方案","searchType":"document"}'
+feishu-tool search_feishu_documents '{"searchKey":"项目方案","searchType":"document"}'
 
 # 2. 读取文档块结构，找到目标 blockId
-feishu-mcp-tool get_feishu_document_blocks '{"documentId":"<doc_id>"}'
+feishu-tool get_feishu_document_blocks '{"documentId":"<doc_id>"}'
 
 # 3. 更新目标块文本
-feishu-mcp-tool batch_update_feishu_block_text '{
+feishu-tool batch_update_feishu_block_text '{
   "documentId": "<doc_id>",
   "updates": [{"blockId":"<block_id>","textElements":[{"text":"更新后的内容"}]}]
 }'
@@ -436,7 +436,7 @@ feishu-mcp-tool batch_update_feishu_block_text '{
 
 ```bash
 # 1. 创建空图片块，获取返回的 blockId
-feishu-mcp-tool batch_create_feishu_blocks '{
+feishu-tool batch_create_feishu_blocks '{
   "documentId": "<doc_id>",
   "parentBlockId": "<doc_id>",
   "index": 0,
@@ -444,7 +444,7 @@ feishu-mcp-tool batch_create_feishu_blocks '{
 }'
 
 # 2. 上传图片并绑定
-feishu-mcp-tool upload_and_bind_image_to_block '{
+feishu-tool upload_and_bind_image_to_block '{
   "documentId": "<doc_id>",
   "images": [{"blockId":"<image_block_id>","imagePathOrUrl":"https://example.com/diagram.png"}]
 }'
@@ -456,7 +456,7 @@ feishu-mcp-tool upload_and_bind_image_to_block '{
 
 ```bash
 # 1. 创建白板块，获取返回的 board.token
-feishu-mcp-tool batch_create_feishu_blocks '{
+feishu-tool batch_create_feishu_blocks '{
   "documentId": "<doc_id>",
   "parentBlockId": "<doc_id>",
   "index": 0,
@@ -464,7 +464,7 @@ feishu-mcp-tool batch_create_feishu_blocks '{
 }'
 
 # 2. 填充图表
-feishu-mcp-tool fill_whiteboard_with_plantuml '{
+feishu-tool fill_whiteboard_with_plantuml '{
   "whiteboards": [{
     "whiteboardId": "<board_token>",
     "code": "@startuml\nA -> B: 调用\nB --> A: 返回\n@enduml",
@@ -481,18 +481,18 @@ feishu-mcp-tool fill_whiteboard_with_plantuml '{
 
 ```bash
 # 1. 获取知识库 spaceId
-feishu-mcp-tool get_feishu_root_folder_info
+feishu-tool get_feishu_root_folder_info
 # 返回示例：{"wiki_spaces":[{"id":"7593969969780509915","name":"团队知识库"}]}
 
 # 2. 在知识库根节点下创建父节点（文档即节点）
-feishu-mcp-tool create_feishu_document '{
+feishu-tool create_feishu_document '{
   "title": "Q2 项目规划",
   "wikiContext": {"spaceId": "7593969969780509915"}
 }'
 # 返回示例：{"node_token":"WikXxxParent","obj_token":"docXxxParent"}
 
 # 3. 在父节点下创建子节点（传 parentNodeToken = 上一步 node_token）
-feishu-mcp-tool create_feishu_document '{
+feishu-tool create_feishu_document '{
   "title": "技术方案",
   "wikiContext": {
     "spaceId": "7593969969780509915",
@@ -502,7 +502,7 @@ feishu-mcp-tool create_feishu_document '{
 # 返回示例：{"node_token":"WikXxxChild","obj_token":"docXxxChild"}
 
 # 4. 向子节点文档写入内容（obj_token 即 documentId，parentBlockId = obj_token）
-feishu-mcp-tool batch_create_feishu_blocks '{
+feishu-tool batch_create_feishu_blocks '{
   "documentId": "docXxxChild",
   "parentBlockId": "docXxxChild",
   "index": 0,
@@ -515,17 +515,49 @@ feishu-mcp-tool batch_create_feishu_blocks '{
 
 ---
 
-### 工作流 6：新建文档并写入内容（parentBlockId = obj_token）
+### 工作流 6：创建表格后更新单元格内容
+
+> `create_feishu_table` 返回的 `cells[].cellBlockId` 是单元格**容器块**（block_type=32），不能直接用于 `batch_update_feishu_block_text`。必须先获取其 `children[0]`（文本子块，block_type=2）的 ID 才能更新。
+
+```bash
+# 1. 创建表格，记录返回的 cells[].cellBlockId（容器块 ID，暂不可用于更新）
+feishu-tool create_feishu_table '{
+  "documentId": "<doc_id>",
+  "parentBlockId": "<doc_id>",
+  "index": 0,
+  "tableConfig": {"rowSize": 2, "columnSize": 2}
+}'
+
+# 2. 获取文档块结构，找到目标单元格容器块的 children[0]（子块 ID）
+OUTPUT=$(feishu-tool get_feishu_document_blocks '{"documentId":"<doc_id>"}')
+# 用 node 从输出中提取 JSON（避免 stdout 末尾非 JSON 提示文字的干扰）
+node -e "
+  const raw = \`$OUTPUT\`;
+  const blocks = JSON.parse(raw.slice(0, raw.lastIndexOf(']') + 1));
+  const cell = blocks.find(b => b.block_id === '<cellBlockId>');
+  console.log('子块 ID:', cell.children[0]);
+"
+
+# 3. 用子块 ID 更新文本（传 cellBlockId 会报错 1770025）
+feishu-tool batch_update_feishu_block_text '{
+  "documentId": "<doc_id>",
+  "updates": [{"blockId": "<children[0]_id>", "textElements": [{"text": "单元格内容"}]}]
+}'
+```
+
+---
+
+### 工作流 7：新建文档并写入内容（parentBlockId = obj_token）
 
 > `create_feishu_document` 返回的 `obj_token`（知识库）或 `documentId`（云盘）即为写块时的 `documentId` 和根级 `parentBlockId`。
 
 ```bash
 # 1. 创建文档
-feishu-mcp-tool create_feishu_document '{"title":"架构设计","folderToken":"FWK2xxxxx"}'
+feishu-tool create_feishu_document '{"title":"架构设计","folderToken":"FWK2xxxxx"}'
 # 返回：{"documentId":"NewDocId","..."}
 
 # 2. 写入块（documentId = parentBlockId = 上一步的 documentId / obj_token）
-feishu-mcp-tool batch_create_feishu_blocks '{
+feishu-tool batch_create_feishu_blocks '{
   "documentId": "NewDocId",
   "parentBlockId": "NewDocId",
   "index": 0,

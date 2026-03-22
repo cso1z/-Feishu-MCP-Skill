@@ -1,8 +1,8 @@
 ---
-version: 1.2.0
-description: 使用 feishu-mcp-tool CLI 操作飞书文档、任务、用户等资源。当用户需要读写飞书（创建/查询/更新/删除文档、块、任务、文件夹、用户）时调用此 skill。
+version: 1.3.0
+description: 使用 feishu-tool CLI 操作飞书文档、任务、用户等资源。当用户需要读写飞书（创建/查询/更新/删除文档、块、任务、文件夹、用户）时调用此 skill。
 argument-hint: "[tool-name] [json-params]"
-allowed-tools: Bash(feishu-mcp-tool *), Bash(command -v feishu-mcp-tool), Bash(npx feishu-mcp *), Bash(npm install -g feishu-mcp)
+allowed-tools: Read, Bash(feishu-tool *), Bash(command -v feishu-tool), Bash(npm install -g feishu-mcp@latest), Bash(node -e *)
 parameters:
   - name: tool_name
     type: string
@@ -15,9 +15,11 @@ parameters:
     description: 工具参数，JSON 字符串格式
 ---
 
-# feishu-mcp-tool CLI
+# feishu-tool CLI
 
-命令行工具，支持直接调用全部飞书 MCP 工具。专为 LLM Agent 设计：参数以 JSON 传入，结果以纯 JSON 输出到 stdout，日志和授权提示输出到 stderr。
+命令行工具，支持直接调用全部飞书 MCP 工具。专为 LLM Agent 设计：参数以 JSON 传入，日志和授权提示输出到 stderr。
+
+> ⚠️ **stdout 纯净性说明**：大多数工具以纯 JSON 输出到 stdout；但 `get_feishu_document_blocks` 在检测到图片块（block_type=27）或白板块时，会在 JSON 数组末尾追加非 JSON 提示文本（emoji 行）。**不要将该工具的输出直接 pipe 给 JSON 解析器**，应先将结果保存到变量，再截取到最后一个 `]` 为止，或用 `node -e` 提取所需字段。
 
 ## 执行流程
 
@@ -26,39 +28,25 @@ parameters:
 ### 第一步：检查命令是否可用
 
 ```bash
-command -v feishu-mcp-tool
+feishu-tool --help
 ```
 
-- **有输出（路径）**：继续下一步
-- **无输出 / 报错**：询问用户偏好，**停止执行**：
+- **有输出**：继续下一步
+- **报错 / 命令未找到**：自动执行安装，**停止执行后续步骤**：
 
-```
-feishu-mcp-tool 命令未找到，请选择安装方式：
-
-方式 A — npx（无需安装，即用即走，推荐快速体验）：
-  无需额外步骤，直接告知我，我将使用 npx feishu-mcp 执行
-  注意：npx 版本可能落后最新代码约 1-2 周
-
-方式 B — 全局安装（推荐长期使用）：
-  npm install -g feishu-mcp
-  feishu-mcp-tool guide
-
-方式 C — 本地源码（开发者，功能最新）：
-  git clone https://github.com/cso1z/Feishu-MCP
-  cd Feishu-MCP && pnpm install && pnpm build && pnpm link --global
-
-项目地址：https://github.com/cso1z/Feishu-MCP
+```bash
+npm install -g feishu-mcp@latest
 ```
 
-**若用户选择 npx**：后续所有命令将 `feishu-mcp-tool <args>` 替换为 `npx feishu-mcp <args>`，无需再次检查。
+安装完成后重新从第一步开始。
 
 ### 第二步：检查是否已完成初始化配置
 
 ```bash
-feishu-mcp-tool config
+feishu-tool config
 ```
 
-- 若 `FEISHU_APP_ID` 或 `FEISHU_APP_SECRET` 为 `(未设置)`：调用 `feishu-mcp-tool guide` 并提示用户按指南完成初始化，**停止执行**
+- 若 `FEISHU_APP_ID` 或 `FEISHU_APP_SECRET` 为 `(未设置)`：调用 `feishu-tool guide` 并提示用户按指南完成初始化，**停止执行**
 - 配置就绪：继续下一步
 
 ### 第三步（仅 user 模式）：检查授权状态
@@ -66,18 +54,19 @@ feishu-mcp-tool config
 若 `FEISHU_AUTH_TYPE` 为 `user`，执行：
 
 ```bash
-feishu-mcp-tool auth
+feishu-tool auth
 ```
 
-- `isValid: true`：token 有效，正常执行
-- `isValid: false` 且 `canRefresh: false`：token 不存在或已过期，**告知用户**：
+| 状态 | 操作 |
+|------|------|
+| `isValid: true` | token 有效，直接执行目标工具 |
+| `isValid: false, canRefresh: true` | SDK 内部自动刷新，直接执行目标工具，无需告知用户 |
+| `isValid: false, canRefresh: false` | token 不存在或彻底过期，**告知用户**后继续执行（工具内部自动触发浏览器授权）：|
 
 ```
 需要飞书用户授权。即将调用工具，程序会自动打开浏览器授权页，
 请在 5 分钟内完成授权后结果将自动返回。
 ```
-
-  然后继续执行目标工具（工具内部会自动触发授权等待）。
 
 ---
 
@@ -87,13 +76,13 @@ feishu-mcp-tool auth
 
 ```bash
 # 查看配置指南（同时打开详细文档页面）
-feishu-mcp-tool guide
+feishu-tool guide
 
 # 逐项写入配置（保存到 ~/.cache/feishu-mcp/.env，全局生效）
-feishu-mcp-tool config set FEISHU_APP_ID <your-app-id>
-feishu-mcp-tool config set FEISHU_APP_SECRET <your-app-secret>
-feishu-mcp-tool config set FEISHU_AUTH_TYPE tenant   # 或 user
-feishu-mcp-tool config set FEISHU_ENABLED_MODULES document  # 或 all
+feishu-tool config set FEISHU_APP_ID <your-app-id>
+feishu-tool config set FEISHU_APP_SECRET <your-app-secret>
+feishu-tool config set FEISHU_AUTH_TYPE tenant   # 或 user
+feishu-tool config set FEISHU_ENABLED_MODULES document  # 或 all
 ```
 
 > 配置写入 `~/.cache/feishu-mcp/.env`，对所有项目全局生效，无需在每个项目单独创建 `.env`。
@@ -101,13 +90,13 @@ feishu-mcp-tool config set FEISHU_ENABLED_MODULES document  # 或 all
 ### 查看当前配置
 
 ```bash
-feishu-mcp-tool config
+feishu-tool config
 ```
 
-### 可配置项（不确定时可先执行 `feishu-mcp-tool config set` 查看说明）
+### 可配置项（不确定时可先执行 `feishu-tool config set` 查看说明）
 
 ```bash
-feishu-mcp-tool config set   # 不带参数：显示所有可用 KEY 及含义
+feishu-tool config set   # 不带参数：显示所有可用 KEY 及含义
 ```
 
 | 变量 | 必填 | 说明 | 示例 |
@@ -122,8 +111,8 @@ feishu-mcp-tool config set   # 不带参数：显示所有可用 KEY 及含义
 ## 调用格式
 
 ```bash
-feishu-mcp-tool <tool-name> '<json-params>'
-feishu-mcp-tool <tool-name>          # 无参数工具可省略第二个参数
+feishu-tool <tool-name> '<json-params>'
+feishu-tool <tool-name>          # 无参数工具可省略第二个参数
 ```
 
 - **stdout**：工具执行结果（JSON）
@@ -133,7 +122,7 @@ feishu-mcp-tool <tool-name>          # 无参数工具可省略第二个参数
 ### 动态获取当前可用工具列表
 
 ```bash
-feishu-mcp-tool --help
+feishu-tool --help
 ```
 
 返回当前 `authType` 下实际可用的工具列表及子命令说明。`tenant` 模式下 task/member 工具不可用，`toolsNote` 字段会说明原因。
@@ -155,7 +144,12 @@ feishu-mcp-tool --help
 > - Task 模块 → `feishu-mcp/reference/task.md`
 > - Member 模块 → `feishu-mcp/reference/member.md`
 >
-> 下表仅供选择工具用，不含完整参数。实际可用工具以 `feishu-mcp-tool --help` 为准（受 `authType` 影响）。
+> 若参考文档中对某工具的使用场景或入参定义描述不足，可通过以下命令获取更详细的定义：
+> ```bash
+> feishu-tool help <tool-name>
+> ```
+>
+> 下表仅供选择工具用，不含完整参数。实际可用工具以 `feishu-tool --help` 为准（受 `authType` 影响）。
 
 ### Document 模块（tenant + user 均可用，共 15 个）
 
@@ -198,16 +192,16 @@ feishu-mcp-tool --help
 
 ```bash
 # 获取根文件夹（无需参数）
-feishu-mcp-tool get_feishu_root_folder_info
+feishu-tool get_feishu_root_folder_info
 
 # 在根文件夹下创建文档
-feishu-mcp-tool create_feishu_document '{"title":"我的文档","folderToken":"FWK2xxxxx"}'
+feishu-tool create_feishu_document '{"title":"我的文档","folderToken":"FWK2xxxxx"}'
 
 # 创建任务（需 user 模式）
-feishu-mcp-tool create_feishu_task '{"tasks":[{"summary":"完成需求评审","dueTimestamp":"1742212800000"}]}'
+feishu-tool create_feishu_task '{"tasks":[{"summary":"完成需求评审","dueTimestamp":"1742212800000"}]}'
 
 # 按姓名搜索用户（需 user 模式）
-feishu-mcp-tool get_feishu_users '{"queries":[{"query":"张三"}]}'
+feishu-tool get_feishu_users '{"queries":[{"query":"张三"}]}'
 ```
 
 ---

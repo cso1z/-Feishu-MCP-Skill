@@ -1,4 +1,4 @@
-# feishu-mcp-tool — Task 模块参考
+# feishu-tool — Task 模块参考
 
 覆盖飞书任务的增删改查全部 4 个工具。仅 `FEISHU_AUTH_TYPE=user` 时可用。
 
@@ -22,9 +22,9 @@
 - `completed`? boolean：true=仅已完成，false=仅未完成，不传=全部
 
 ```bash
-feishu-mcp-tool list_feishu_tasks '{"completed":false}'
-feishu-mcp-tool list_feishu_tasks '{"pageToken":"xxxxx"}'
-feishu-mcp-tool list_feishu_tasks '{}'
+feishu-tool list_feishu_tasks '{"completed":false}'
+feishu-tool list_feishu_tasks '{"pageToken":"xxxxx"}'
+feishu-tool list_feishu_tasks '{}'
 ```
 
 返回示例：
@@ -69,12 +69,12 @@ feishu-mcp-tool list_feishu_tasks '{}'
 
 ```bash
 # 创建单个任务
-feishu-mcp-tool create_feishu_task '{
+feishu-tool create_feishu_task '{
   "tasks": [{"summary":"完成需求评审","dueTimestamp":"1742212800000"}]
 }'
 
 # 创建带子任务的主任务
-feishu-mcp-tool create_feishu_task '{
+feishu-tool create_feishu_task '{
   "tasks": [
     {
       "summary": "Q2 项目启动",
@@ -119,13 +119,13 @@ feishu-mcp-tool create_feishu_task '{
 
 ```bash
 # 修改标题
-feishu-mcp-tool update_feishu_task '{"taskGuid":"4a3e075f-...","summary":"新标题"}'
+feishu-tool update_feishu_task '{"taskGuid":"4a3e075f-...","summary":"新标题"}'
 
 # 标记已完成
-feishu-mcp-tool update_feishu_task '{"taskGuid":"4a3e075f-...","completedAt":"1742212800000"}'
+feishu-tool update_feishu_task '{"taskGuid":"4a3e075f-...","completedAt":"1742212800000"}'
 
 # 取消完成状态
-feishu-mcp-tool update_feishu_task '{"taskGuid":"4a3e075f-...","completedAt":"0"}'
+feishu-tool update_feishu_task '{"taskGuid":"4a3e075f-...","completedAt":"0"}'
 ```
 
 ---
@@ -139,7 +139,7 @@ feishu-mcp-tool update_feishu_task '{"taskGuid":"4a3e075f-...","completedAt":"0"
 - `taskGuids`* string[]（1~50 项）：要删除的任务 GUID 数组
 
 ```bash
-feishu-mcp-tool delete_feishu_task '{"taskGuids":["4a3e075f-a198-4b1a-8d5e-d98a8a6b6e76"]}'
+feishu-tool delete_feishu_task '{"taskGuids":["4a3e075f-a198-4b1a-8d5e-d98a8a6b6e76"]}'
 ```
 
 ---
@@ -149,7 +149,7 @@ feishu-mcp-tool delete_feishu_task '{"taskGuids":["4a3e075f-a198-4b1a-8d5e-d98a8
 ### 工作流 1：创建项目任务树
 
 ```bash
-feishu-mcp-tool create_feishu_task '{
+feishu-tool create_feishu_task '{
   "tasks": [{
     "summary": "新功能开发",
     "dueTimestamp": "1750000000000",
@@ -169,11 +169,11 @@ feishu-mcp-tool create_feishu_task '{
 
 ```bash
 # 1. 查询未完成任务，获取 guid
-feishu-mcp-tool list_feishu_tasks '{"completed":false}'
+feishu-tool list_feishu_tasks '{"completed":false}'
 
 # 2. 标记为完成
-feishu-mcp-tool update_feishu_task '{"taskGuid":"<guid1>","completedAt":"1742212800000"}'
-feishu-mcp-tool update_feishu_task '{"taskGuid":"<guid2>","completedAt":"1742212800000"}'
+feishu-tool update_feishu_task '{"taskGuid":"<guid1>","completedAt":"1742212800000"}'
+feishu-tool update_feishu_task '{"taskGuid":"<guid2>","completedAt":"1742212800000"}'
 ```
 
 ---
@@ -182,8 +182,8 @@ feishu-mcp-tool update_feishu_task '{"taskGuid":"<guid2>","completedAt":"1742212
 
 ```bash
 # 1. 获取已完成任务列表
-feishu-mcp-tool list_feishu_tasks '{"completed":true}'
+feishu-tool list_feishu_tasks '{"completed":true}'
 
 # 2. 批量删除
-feishu-mcp-tool delete_feishu_task '{"taskGuids":["<guid1>","<guid2>","<guid3>"]}'
+feishu-tool delete_feishu_task '{"taskGuids":["<guid1>","<guid2>","<guid3>"]}'
 ```

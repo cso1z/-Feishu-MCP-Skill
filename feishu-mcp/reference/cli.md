@@ -1,15 +1,15 @@
-# feishu-mcp-tool — CLI 管理命令参考
+# feishu-tool — CLI 管理命令参考
 
 配置管理、授权管理、初始化指南相关命令。
 
 ---
 
-## `feishu-mcp-tool config`
+## `feishu-tool config`
 
 查看当前生效的配置。
 
 ```bash
-feishu-mcp-tool config
+feishu-tool config
 ```
 
 返回示例：
@@ -35,27 +35,27 @@ feishu-mcp-tool config
 
 ---
 
-## `feishu-mcp-tool config set <KEY> <VALUE>`
+## `feishu-tool config set <KEY> <VALUE>`
 
 向配置文件写入或更新一个配置项。写入位置与当前加载来源一致（`loadedFrom`）。
 
 ```bash
-feishu-mcp-tool config set FEISHU_APP_ID cli_xxxxx
-feishu-mcp-tool config set FEISHU_APP_SECRET your-secret
-feishu-mcp-tool config set FEISHU_AUTH_TYPE user
-feishu-mcp-tool config set FEISHU_ENABLED_MODULES all
+feishu-tool config set FEISHU_APP_ID cli_xxxxx
+feishu-tool config set FEISHU_APP_SECRET your-secret
+feishu-tool config set FEISHU_AUTH_TYPE user
+feishu-tool config set FEISHU_ENABLED_MODULES all
 ```
 
 不带参数时显示所有可用 KEY 及含义：
 
 ```bash
-feishu-mcp-tool config set
+feishu-tool config set
 ```
 
 返回示例：
 ```json
 {
-  "usage": "feishu-mcp-tool config set <KEY> <VALUE>",
+  "usage": "feishu-tool config set <KEY> <VALUE>",
   "availableKeys": {
     "FEISHU_APP_ID": "飞书应用 App ID",
     "FEISHU_APP_SECRET": "飞书应用 App Secret",
@@ -79,12 +79,12 @@ feishu-mcp-tool config set
 
 ---
 
-## `feishu-mcp-tool auth`
+## `feishu-tool auth`
 
 查看当前用户 token 的授权状态（仅 `FEISHU_AUTH_TYPE=user` 时有意义）。
 
 ```bash
-feishu-mcp-tool auth
+feishu-tool auth
 ```
 
 `tenant` 模式返回：
@@ -120,12 +120,12 @@ feishu-mcp-tool auth
 
 ---
 
-## `feishu-mcp-tool auth logout`
+## `feishu-tool auth logout`
 
 清除当前用户的缓存 token，下次调用工具时重新触发授权流程。
 
 ```bash
-feishu-mcp-tool auth logout
+feishu-tool auth logout
 ```
 
 返回示例：
@@ -135,12 +135,12 @@ feishu-mcp-tool auth logout
 
 ---
 
-## `feishu-mcp-tool guide`
+## `feishu-tool guide`
 
 显示飞书 MCP 配置指南，并**自动在浏览器打开详细文档**。
 
 ```bash
-feishu-mcp-tool guide
+feishu-tool guide
 ```
 
 返回内容根据当前 `FEISHU_AUTH_TYPE` 和 `FEISHU_ENABLED_MODULES` 动态生成，包含：
@@ -164,41 +164,41 @@ feishu-mcp-tool guide
 
 ```bash
 # 1. 查看配置指南（打开浏览器文档）
-feishu-mcp-tool guide
+feishu-tool guide
 
 # 2. 写入配置
-feishu-mcp-tool config set FEISHU_APP_ID cli_xxxxx
-feishu-mcp-tool config set FEISHU_APP_SECRET your-secret
-feishu-mcp-tool config set FEISHU_AUTH_TYPE user
-feishu-mcp-tool config set FEISHU_ENABLED_MODULES all
+feishu-tool config set FEISHU_APP_ID cli_xxxxx
+feishu-tool config set FEISHU_APP_SECRET your-secret
+feishu-tool config set FEISHU_AUTH_TYPE user
+feishu-tool config set FEISHU_ENABLED_MODULES all
 
 # 3. 验证配置
-feishu-mcp-tool config
+feishu-tool config
 
 # 4. 测试连通性
-feishu-mcp-tool get_feishu_root_folder_info
+feishu-tool get_feishu_root_folder_info
 ```
 
 ### 工作流 2：切换认证模式
 
 ```bash
 # 从 tenant 切换到 user 模式
-feishu-mcp-tool config set FEISHU_AUTH_TYPE user
-feishu-mcp-tool config set FEISHU_ENABLED_MODULES all
+feishu-tool config set FEISHU_AUTH_TYPE user
+feishu-tool config set FEISHU_ENABLED_MODULES all
 
 # 检查 token 状态（初次使用 user 模式时为未授权）
-feishu-mcp-tool auth
+feishu-tool auth
 
 # 调用任意工具触发授权（会自动打开浏览器）
-feishu-mcp-tool get_feishu_root_folder_info
+feishu-tool get_feishu_root_folder_info
 ```
 
 ### 工作流 3：重新授权
 
 ```bash
 # 清除旧 token
-feishu-mcp-tool auth logout
+feishu-tool auth logout
 
 # 调用工具触发重新授权
-feishu-mcp-tool get_feishu_root_folder_info
+feishu-tool get_feishu_root_folder_info
 ```
