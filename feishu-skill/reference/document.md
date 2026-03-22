@@ -9,8 +9,24 @@
 以下字段在多个工具中出现，含义一致：
 
 - **`documentId`**：文档 ID 或普通文档 URL，支持 `https://xxx.feishu.cn/docx/xxx` 或直接传 token（如 `JcKbdlokYoPIe0xDzJ1cduRXnRf`）。⚠️ 不支持 Wiki URL，Wiki 需先调用 `get_feishu_document_info` 获取 documentId。
-- **`parentBlockId`**：父块 ID，**必填，不可省略**。向文档**根级**写入时 `parentBlockId` = `documentId`（两者值完全相同）；操作嵌套块（如表格内）时传对应父块 ID。
+- **`parentBlockId`**：父块 ID，**必填，不可省略**。三种常见场景：
+
+  | 场景 | documentId | parentBlockId | 说明 |
+  |------|-----------|---------------|------|
+  | 写入文档根级 | `doc_token` | `doc_token`（**与 documentId 完全相同**）| 最常见，两者传同一值 |
+  | 更新表格单元格 | `doc_token` | 单元格子块 ID（children[0]）| ⚠️ 不是容器块 ID，见工作流 6 |
+  | 写入嵌套块内 | `doc_token` | 父块的 block_id | 从 `get_feishu_document_blocks` 结果获取 |
+
 - **`index`**：插入位置，0-based，标题块不计入。文档有 N 个内容块时有效值 0~N，N=追加末尾。
+
+**文本样式字段区分**（高频错误来源）：
+
+| 操作 | 工具 | 字段名 |
+|------|------|--------|
+| 创建块 | `batch_create_feishu_blocks` | `textStyles`（TextElement 数组）|
+| 更新块 | `batch_update_feishu_block_text` | `textElements`（TextElement 数组）|
+
+记忆法：**create 用 Styles，update 用 Elements**。切勿混用，否则参数校验失败。
 
 ---
 
@@ -209,12 +225,52 @@ feishu-tool batch_create_feishu_blocks '{
   "parentBlockId": "Uk6mdN6Hao5umbxC13ccGstonIh",
   "index": 0,
   "blocks": [
-    {"blockType":"heading","options":{"heading":{"level":1,"content":"项目概述"}}},
-    {"blockType":"text","options":{"text":{"textStyles":[{"text":"说明文字"},{"text":"加粗部分","style":{"bold":true}}]}}},
-    {"blockType":"code","options":{"code":{"code":"npm install feishu-mcp","language":7}}}
+    {
+      "blockType": "heading",
+      "options": {"heading": {"level": 1, "content": "项目概述"}}
+    },
+    {
+      "blockType": "text",
+      "options": {
+        "text": {
+          "textStyles": [
+            {"text": "普通文字"},
+            {"text": "加粗", "style": {"bold": true}},
+            {"text": "斜体", "style": {"italic": true}},
+            {"text": "彩色", "style": {"text_color": 6}}
+          ]
+        }
+      }
+    },
+    {
+      "blockType": "code",
+      "options": {"code": {"code": "npm install feishu-mcp", "language": 7}}
+    },
+    {
+      "blockType": "list",
+      "options": {"list": {"content": "有序列表第一项", "isOrdered": true}}
+    },
+    {
+      "blockType": "list",
+      "options": {"list": {"content": "无序列表项"}}
+    },
+    {
+      "blockType": "image",
+      "options": {"image": {"width": 800}}
+    },
+    {
+      "blockType": "mermaid",
+      "options": {"mermaid": {"code": "graph LR\n  A[开始] --> B[处理] --> C[结束]"}}
+    },
+    {
+      "blockType": "whiteboard",
+      "options": {"whiteboard": {}}
+    }
   ]
 }'
 ```
+
+> `image` 和 `whiteboard` 创建空块，需后续分别用 `upload_and_bind_image_to_block` 和 `fill_whiteboard_with_plantuml` 填充内容。
 
 ---
 
@@ -529,10 +585,11 @@ feishu-tool create_feishu_table '{
 }'
 
 # 2. 获取文档块结构，找到目标单元格容器块的 children[0]（子块 ID）
-OUTPUT=$(feishu-tool get_feishu_document_blocks '{"documentId":"<doc_id>"}')
-# 用 node 从输出中提取 JSON（避免 stdout 末尾非 JSON 提示文字的干扰）
+# 先写入临时文件，避免变量插值破坏 JSON 中的双引号
+# macOS/Linux/Git Bash：/tmp/blocks.json；Windows 原生 shell：$TEMP/blocks.json
+feishu-tool get_feishu_document_blocks '{"documentId":"<doc_id>"}' > /tmp/blocks.json
 node -e "
-  const raw = \`$OUTPUT\`;
+  const raw = require('fs').readFileSync('/tmp/blocks.json', 'utf8');
   const blocks = JSON.parse(raw.slice(0, raw.lastIndexOf(']') + 1));
   const cell = blocks.find(b => b.block_id === '<cellBlockId>');
   console.log('子块 ID:', cell.children[0]);

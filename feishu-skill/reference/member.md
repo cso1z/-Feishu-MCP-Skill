@@ -35,9 +35,14 @@ feishu-tool get_feishu_users '{"queries":[{"query":"张三"}]}'
 feishu-tool get_feishu_users '{"queries":[{"query":"张三"},{"query":"李四"}]}'
 
 # ❌ 错误示例（常见误用，均会报错）：
-# {"names":["张三"]}                    -> 字段名错误，应为 queries
-# {"queries":["张三"]}                  -> 元素应为对象 {query: string}，而非字符串
-# {"queries":[{"name":"张三"}]}         -> 字段应为 query，不是 name
+# {"names":["张三"]}
+#   └─ 顶层字段名错误：应为 queries，不是 names
+#
+# {"queries":["张三"]}
+#   └─ 数组元素类型错误：元素必须是对象 {query: string}，不能是裸字符串
+#
+# {"queries":[{"name":"张三"}]}
+#   └─ 对象内字段名错误：应为 query，不是 name
 
 # 按 open_id 批量查询
 feishu-tool get_feishu_users '{

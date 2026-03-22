@@ -51,23 +51,17 @@ feishu-tool config set FEISHU_APP_SECRET <your-app-secret>
 将以下 prompt 直接发给 AI（Claude Code、Cursor 等），它会自动执行上述所有步骤：
 
 ```
-请帮我完成 feishu-tool 的安装和配置：
+请帮我安装 Feishu-Skill：
 
-1. 检查 feishu-tool 是否已安装（feishu-tool --help），若未安装则执行：
-   npm install -g feishu-mcp@latest
+1. 将项目克隆到本地临时目录：
+   git clone https://github.com/cso1z/Feishu-Skill.git /tmp/Feishu-Skill
 
-2. 检查当前配置（feishu-tool config），若 FEISHU_APP_ID 或 FEISHU_APP_SECRET 未设置：
-   - 执行 feishu-tool guide，按指南说明告知我如何获取 App ID 和 App Secret
-   - 等我提供凭证后，执行：
-     feishu-tool config set FEISHU_APP_ID <我提供的 App ID>
-     feishu-tool config set FEISHU_APP_SECRET <我提供的 App Secret>
+2. 执行安装脚本（安装到全局 ~/.claude/skills）：
+   bash /tmp/Feishu-Skill/install.sh
 
-3. 用 feishu-tool get_feishu_root_folder_info 验证连通性，成功则告知我已就绪。
-
-我的 App ID：___________
-我的 App Secret：___________
-认证模式（tenant/user，不填默认 tenant）：___________
-启用模块（document/task/member/all，不填默认 document）：___________
+3. 安装完成后，检查 feishu-mcp skill 是否已加载（确认 ~/.claude/skills/feishu-skill/SKILL.md 存在）：
+   - 若已加载，直接告知我已就绪，无需重启
+   - 若未加载，告知我需要重启 AI 工具以加载 Skill
 ```
 
 ## 功能

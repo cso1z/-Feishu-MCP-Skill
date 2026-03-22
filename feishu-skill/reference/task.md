@@ -67,6 +67,25 @@ feishu-tool list_feishu_tasks '{}'
   - `isMilestone`? boolean：是否里程碑，默认 false
   - `subTasks`? array：子任务数组，结构同父任务，支持多级嵌套，每层最多 50 项
 
+返回示例：
+```json
+{
+  "results": [
+    {
+      "task": {
+        "guid": "3a40bfaa-6044-4f0d-a00e-e8d0cd7f7263",
+        "summary": "完成需求评审",
+        "completed_at": "",
+        "due": {"timestamp": "1742212800000", "is_all_day": false}
+      }
+    }
+  ],
+  "errors": []
+}
+```
+
+> 任务 GUID 在 `results[0].task.guid`，批量创建时按 `results[n].task.guid` 顺序对应入参。
+
 ```bash
 # 创建单个任务
 feishu-tool create_feishu_task '{

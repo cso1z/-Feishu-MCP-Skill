@@ -7,7 +7,7 @@
 
 set -e
 
-SKILL_NAME="feishu-mcp"
+SKILL_NAME="feishu-skill"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SOURCE_DIR="$SCRIPT_DIR/$SKILL_NAME"
 
